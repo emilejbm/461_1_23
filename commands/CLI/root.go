@@ -1,4 +1,4 @@
-package cli
+package team23
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use: "team23",
-	Short: "team23 - root command for app"
+	Short: "team23 - root command for app",
 	Long: "team23 is the root command to navigate through Team 23's CLI app",
 	Run: func(cmd *cobra.Command, args[]string){
 
