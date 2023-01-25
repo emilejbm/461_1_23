@@ -21,5 +21,5 @@ var testCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(testCmd)
-	fmt.Println("test command init")
+	//fmt.Println("test command init")
 }

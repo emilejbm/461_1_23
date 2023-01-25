@@ -1,9 +1,9 @@
 package team23
 
 import (
-	"fmt"
-	//"os"
+	"os"
 	"github.com/spf13/cobra"
+	"github.com/emilejbm/461_1_23/functionality/CLI"
 )
 
 var urlfileCmd = &cobra.Command{
@@ -15,11 +15,11 @@ var urlfileCmd = &cobra.Command{
 	 produce a net score and output in NDJSON format to stdout.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args[]string){
-		fmt.Println("url_file command recognized")
+		functionality.READ_url_file(os.Args)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(urlfileCmd)
-	fmt.Println("url_file command init")
+	//fmt.Println("url_file command init")
 }

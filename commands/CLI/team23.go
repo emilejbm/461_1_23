@@ -21,4 +21,5 @@ func Execute() {
 		fmt.Fprintf(os.Stderr, "Error using CLI '%s'", err)
 		os.Exit(1)
 	}
+	os.Exit(0)
 }
