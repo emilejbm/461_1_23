@@ -24,7 +24,7 @@ var installCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println(err.Error())
 		} else{
-			fmt.Println("Build succesful", string(stdout))
+			fmt.Println("Installation succesful", string(stdout))
 		}
 	},
 }
