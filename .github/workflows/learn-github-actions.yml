@@ -2,7 +2,8 @@ name: learn-github-actions
 run-name: ${{ github.actor }} is learning GitHub Actions
 on: [push]
 jobs:
-  check-bats-version:
+  autograde-commands:
+    runs-on: ubuntu-latest
     steps:
       - name: Run autograde script
         run: ./.github/workflows/run.sh
