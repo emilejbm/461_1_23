@@ -5,6 +5,7 @@ jobs:
   autograde-commands:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Run autograde script
-        run: echo -n "testtesttest"
+        run: ./run.sh
         shell: bash
