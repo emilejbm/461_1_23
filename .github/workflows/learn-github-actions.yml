@@ -5,5 +5,5 @@ jobs:
   check-bats-version:
     steps:
       - name: Run autograde script
-      - run: ./.github/workflows/run.sh
+        run: ./.github/workflows/run.sh
         shell: bash
