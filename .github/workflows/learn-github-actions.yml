@@ -5,7 +5,11 @@ jobs:
   autograde-commands:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Run autograde script
-        run: ./run.sh
+        run: |
+        ./run.sh install
+        ./run.sh build
+        ./run.sh URL_FILE
+        ./run.sh test
         shell: bash
