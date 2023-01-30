@@ -8,8 +8,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run autograde script
         run: |
-        ./run.sh install
-        ./run.sh build
-        ./run.sh URL_FILE
-        ./run.sh test
+          ./run.sh install
+          ./run.sh build
+          ./run.sh URL_FILE
+          ./run.sh test
         shell: bash
