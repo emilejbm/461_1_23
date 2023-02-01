@@ -1,0 +1,15 @@
+name: learn-github-actions
+run-name: ${{ github.actor }} is learning GitHub Actions
+on: [push]
+jobs:
+  autograde-commands:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run autograde script
+        run: |
+          ./run.sh install
+          ./run.sh build
+          ./run.sh URL_FILE
+          ./run.sh test
+        shell: bash
