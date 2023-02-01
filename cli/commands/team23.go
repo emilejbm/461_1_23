@@ -1,17 +1,19 @@
 /*
-Root command is created as team23. Holds no functionality but all other
-commands are built on top of this command. Creation of new commands
-requires an init function per command with rootCmd.AddCommand(<newCmd>)
+Root command is created as team23. All other commands are built on
+top of this command. Creation of new commands requires an init
+function per command with rootCmd.AddCommand(<newCmd>)
 */
 
 package commands
 
 import (
 	"fmt"
-	"github.com/19chonm/461_1_23/cli/functionality"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+
+	"github.com/19chonm/461_1_23/fileio"
+	"github.com/19chonm/461_1_23/worker"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -36,16 +38,22 @@ func Execute() {
 		'install', 'test', or 'URL_FILE' where URL_FILE is an absolute path 
 		to a file`)
 	} else if filepath.IsAbs(os.Args[1]) {
-		functionality.Read_url_file(os.Args[1])
+		// Start file reader
+		url_ch := fileio.MakeUrlChannel()
+		go fileio.ReadFile(os.Args[1], url_ch)
+
+		// Start workers
+		worker.StartWorkers(url_ch)
+
 	} else if os.Args[1] == "build" || os.Args[1] == "install" ||
 		os.Args[1] == "test" {
 
 		if err := rootCmd.Execute(); err != nil {
-			fmt.Println("CLI: Error using CLI '%s'", err)
+			fmt.Println("CLI: Error using CLI ", err)
 			os.Exit(1)
 		}
 	} else {
-		fmt.Println("CLI: Not a recognized command\n")
+		fmt.Println("CLI: Not a recognized command")
 		os.Exit(1)
 	}
 
