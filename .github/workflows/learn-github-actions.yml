@@ -1,5 +1,5 @@
-name: learn-github-actions
-run-name: ${{ github.actor }} is learning GitHub Actions
+name: run-commands
+run-name: ${{ github.actor }} is trying to integrate
 on: [push]
 jobs:
   autograde-commands:
@@ -8,8 +8,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run autograde script
         run: |
-          ./run.sh install
-          ./run.sh build
-          ./run.sh URL_FILE
-          ./run.sh test
+          go build -o run
+          run install
+          run build
+          run URL_FILE
+          run test
         shell: bash
