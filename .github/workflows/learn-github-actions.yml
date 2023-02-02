@@ -11,6 +11,6 @@ jobs:
           go build -o run
           ./run install
           ./run build
-          ./run 'URL_FILE'
+          ./run 'https://www.npmjs.com/package/even'
           ./run test
         shell: bash
