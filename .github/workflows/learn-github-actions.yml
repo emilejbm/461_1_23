@@ -12,5 +12,5 @@ jobs:
           ./run install
           ./run build
           ./run test
-          ./run 'C:\Users\mmcho\OneDrive - purdue.edu\ECE 461\Part 1\461_1_23\test\urls_file.txt'
+          ./run '\C:\Users\mmcho\OneDrive - purdue.edu\ECE 461\Part 1\461_1_23\test\urls_file.txt'
         shell: bash
