@@ -12,5 +12,5 @@ jobs:
           ./run install
           ./run build
           ./run test
-          ./run 'test/urls_file.txt'
+          ./run '/test/urls_file.txt'
         shell: bash
