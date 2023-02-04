@@ -12,5 +12,5 @@ jobs:
           ./run install
           ./run build
           ./run test
-          ./run /C:/Users/mmcho/OneDrive/Documents/dummy/461_1_23/test/urls_file.txt
+          ./run /Users/mmcho/OneDrive/Documents/dummy/461_1_23/test/urls_file.txt
         shell: bash
