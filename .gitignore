@@ -5,6 +5,7 @@ awesome-go
 vendor
 
 # Folders
+venv
 .idea
 .vscode
 test_stale_repositories_log

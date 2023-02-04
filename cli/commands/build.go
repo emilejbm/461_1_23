@@ -19,15 +19,13 @@ var buildCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		app := "go"
-		arg0 := "build"
-		arg1 := "-o"
-		arg2 := "metric_cli"
+		arg := []string{"build", "-o", "metric_cli"}
 
-		exec_output := exec.Command(app, arg0, arg1, arg2)
-		stdout, err := exec_output.Output()
+		exec_output := exec.Command(app, arg...)
+		stdout, err := exec_output.CombinedOutput()
 
 		if err != nil {
-			fmt.Println("CLI: ", err.Error())
+			fmt.Println("CLI: ", fmt.Sprint(err)+": "+string(stdout))
 		} else {
 			fmt.Println("CLI: Build succesful", string(stdout))
 		}
