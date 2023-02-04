@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func CallPython(url string) float64 {
+func ScanRepo(url string) float64 {
 	app := "./venv/bin/python3"
 	args := []string{"metrics/scanner.py", url}
 	exec_output := exec.Command(app, args...)
