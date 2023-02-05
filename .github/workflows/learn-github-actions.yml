@@ -1,6 +1,6 @@
 name: run-commands
 run-name: ${{ github.actor }} is testing
-on: [push]
+on: [pull-request]
 jobs:
   autograde-commands:
     runs-on: ubuntu-latest
