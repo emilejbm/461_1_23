@@ -1,5 +1,5 @@
 name: run-commands
-run-name: ${{ github.actor }} is trying to integrate
+run-name: ${{ github.actor }} is testing
 on: [push]
 jobs:
   autograde-commands:
