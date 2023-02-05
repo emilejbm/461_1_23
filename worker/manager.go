@@ -3,11 +3,13 @@ package worker
 import (
 	"fmt"
 	"sync"
+
+	"github.com/19chonm/461_1_23/fileio"
 )
 
 const numworkers = 5 // Total number of workers/goroutines to use
 
-func StartWorkers(ch <-chan string) {
+func StartWorkers(urlch <-chan string, ratingch chan<- fileio.Rating) {
 	var wg sync.WaitGroup
 
 	wg.Add(numworkers) // Keep track of the number of goroutines being created
@@ -16,16 +18,17 @@ func StartWorkers(ch <-chan string) {
 		go func() {
 			fmt.Println("worker: Start worker")
 			for {
-				url, ok := <-ch
+				url, ok := <-urlch
 				if !ok { // Channel has been closed
 					fmt.Println("worker: Close worker")
 					wg.Done()
 					return
 				}
-				runTask(url)
+				runTask(url, ratingch)
 			}
 		}()
 	}
 
 	wg.Wait() // Wait for the threads to finish
+	close(ratingch)
 }

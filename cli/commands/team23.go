@@ -38,12 +38,16 @@ func Execute() {
 		'install', 'test', or 'URL_FILE' where URL_FILE is an absolute path 
 		to a file`)
 	} else if filepath.IsAbs(os.Args[1]) {
-		// Start file reader
+		// Create channels for interthread communication
 		url_ch := fileio.MakeUrlChannel()
-		go fileio.ReadFile(os.Args[1], url_ch)
+		rating_ch := fileio.MakeRatingsChannel()
 
-		// Start workers
-		worker.StartWorkers(url_ch)
+		go fileio.ReadFile(os.Args[1], url_ch)    // Start file reader
+		go worker.StartWorkers(url_ch, rating_ch) // Start workers
+
+		// Start output
+		ratings := fileio.Sort_modules(rating_ch)
+		fileio.Print_sorted_output(ratings)
 
 	} else if os.Args[1] == "build" || os.Args[1] == "install" ||
 		os.Args[1] == "test" {
