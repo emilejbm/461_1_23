@@ -12,5 +12,6 @@ jobs:
           ./run install
           ./run build
           ./run test
-          ./run /Users/mmcho/OneDrive/Documents/dummy/461_1_23/test/urls_file.txt
+          ABSFILEPATH=$(readlink -f test/urls_file.txt)
+          ./run "${ABSFILEPATH}"
         shell: bash
