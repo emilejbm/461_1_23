@@ -1,5 +1,5 @@
 name: run-commands
-run-name: ${{ github.actor }} is testing
+run-name: ${{ github.actor }} is making a pull request
 on: [pull-request]
 jobs:
   autograde-commands:
