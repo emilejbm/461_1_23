@@ -13,7 +13,7 @@ else
     EXECUTABLE_FILE=metric_cli
     if [ -f "$EXECUTABLE_FILE" ]; then
         # Run executable, and foward on all arguments
-        $EXECUTABLE_FILE $@
+        ./$EXECUTABLE_FILE $@
     else
         echo "No executable, compile using './run install' and './run build'"
     fi

@@ -10,8 +10,6 @@ jobs:
         run: ./run install
       - name: Run build
         run: ./run build
-      - name: List items
-        run: ls -la
       - name: Run Test
         run: ./run test
       - name: Run URL_FILE
