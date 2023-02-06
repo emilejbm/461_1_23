@@ -14,6 +14,6 @@ jobs:
         run: ./run test
       - name: Run URL_FILE
         run:
-          ABSFILEPATH=$(readlink -f test/urls_file.txt
+          ABSFILEPATH=$(readlink -f test/urls_file.txt)
           ./run "${ABSFILEPATH}"
         shell: bash
