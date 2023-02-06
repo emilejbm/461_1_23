@@ -5,7 +5,6 @@ jobs:
   autograde-commands:
     runs-on: ubuntu-latest
     steps:
-      shell: bash
       - uses: actions/checkout@v3
       - name: Run install
         run: ./run install
@@ -17,3 +16,4 @@ jobs:
         run:
           ABSFILEPATH=$(readlink -f test/urls_file.txt)
           ./run "${ABSFILEPATH}"
+        shell: bash
