@@ -5,12 +5,15 @@ jobs:
   autograde-commands:
     runs-on: ubuntu-latest
     steps:
+      shell: bash
       - uses: actions/checkout@v3
-      - name: Run autograde script
-        run: |
-          ./run install
-          ./run build
-          ./run test
+      - name: Run install
+        run: ./run install
+      - name: Run build
+        run: ./run build
+      - name: Run Test
+        run: ./run test
+      - name: Run URL_FILE
+        run:
           ABSFILEPATH=$(readlink -f test/urls_file.txt)
           ./run "${ABSFILEPATH}"
-        shell: bash
