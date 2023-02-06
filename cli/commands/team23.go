@@ -34,6 +34,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 
 	if len(os.Args) != 2 {
+		fmt.Println(os.Args[1])
 		fmt.Println(`CLI: Please use one of the recognized commands: 'build', 
 		'install', 'test', or 'URL_FILE' where URL_FILE is an absolute path 
 		to a file`)
