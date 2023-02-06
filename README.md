@@ -15,14 +15,13 @@ in order to create executable with 'run' as name.
 This is the current architecture of our program. Each block represents a collection of functions towards a single functionality. Each color represents a package in Go.
 
 # Commands
-`go run . install` to install Go and Python dependencies  
+`./run install` to install Go and Python dependencies  
+`./run build`  to build the executable  
 
-To build and run the executable  
-`go run . build`  
-`./metric_cli URL_FILE`
+The following commands require install and build beforehand:  
+`./run URL_FILE` to run main program  
+`./run test` to run test cases  
 
-Or just run directly  
-`go run . URL_FILE`
 
 # Used Stackoverflow articles
 Module : Link  
