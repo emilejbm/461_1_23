@@ -7,8 +7,9 @@ package commands
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os/exec"
+
+	"github.com/spf13/cobra"
 )
 
 var buildCmd = &cobra.Command{
@@ -20,7 +21,7 @@ var buildCmd = &cobra.Command{
 		app := "go"
 		arg0 := "build"
 		arg1 := "-o"
-		arg2 := "run"
+		arg2 := "metric_cli"
 
 		exec_output := exec.Command(app, arg0, arg1, arg2)
 		stdout, err := exec_output.Output()
