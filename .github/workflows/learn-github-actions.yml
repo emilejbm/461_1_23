@@ -14,5 +14,5 @@ jobs:
         run: ./run test
       - name: Run URL_FILE
         run: |
-          "ABSFILEPATH=$(readlink -f test/urls_file.txt)" >> $GITHUB_ENV
+          echo "ABSFILEPATH=$(readlink -f test/urls_file.txt)" >> $GITHUB_ENV
           ./run "${ABSFILEPATH}"
