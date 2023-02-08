@@ -1,6 +1,9 @@
 name: run-commands
 run-name: ${{ github.actor }} is trying to integrate
-on: [push]
+on: 
+  pull-request:
+    branches:
+      - master
 jobs:
   autograde-commands:
     runs-on: ubuntu-latest
