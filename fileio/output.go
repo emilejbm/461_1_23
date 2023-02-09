@@ -26,7 +26,7 @@ const rating_ch_size = 100 // Size of the buffer for the URL channel
 type Rating struct {
 	NetScore       float64 `json:"NetScore"`
 	Url            string  `json:"URL"`
-	License        bool    `json:"License"`
+	License        float64 `json:"License"`
 	Rampup         float64 `json:"RampUp"`
 	Correctness    float64 `json:"Correctness"`
 	Responsiveness float64 `json:"ResponsiveMaintainer"`
@@ -62,7 +62,8 @@ func make_json_string(r Rating) string {
 	// Convert the Rating struct into a json string
 	jsonString, err := json.Marshal(r)
 	if err != nil {
-		panic("bad error")
+		fmt.Printf("for: %+v\n", r)
+		panic("fileio: make_json_string fail")
 	}
 
 	return string(jsonString)

@@ -73,30 +73,27 @@ type Contributor struct {
 	RecentCommits int    `json:"recent_commits"`
 }
 
-func validateInput(inputUrl string) (string, string, string, bool) {
+func validateInput(inputUrl string) (string, string, string, error) {
 	user := ""
 	repo := ""
 	token := ""
-	valid := false
 
 	// validate URL
 	if inputUrl == "" {
-		fmt.Println("API: InputURL not provided")
-		return user, repo, token, valid
+		return user, repo, token, fmt.Errorf("validateInput: InputURL not provided")
 	}
+
 	urlObject, err := url.Parse(inputUrl)
 	if err != nil {
-		fmt.Println("API: InputURL parse error")
-		return user, repo, token, valid
+		return user, repo, token, fmt.Errorf("validateInput: InputURL parse error")
 	}
 	if urlObject.Host != "github.com" {
-		fmt.Println("API: InputURL is not a GitHub URL: ", urlObject)
-		return user, repo, token, valid
+		return user, repo, token, fmt.Errorf("validateInput: InputURL is not a GitHub URL: %s", urlObject)
 	}
+
 	path := strings.Split(urlObject.EscapedPath(), "/")[1:]
 	if len(path) != 2 {
-		fmt.Println("API: InputURL does not point to a GitHub repository: ", urlObject)
-		return user, repo, token, valid
+		return user, repo, token, fmt.Errorf("validateInput: InputURL does not point to a GitHub repository: %s", urlObject)
 	}
 	user, repo = path[0], path[1]
 
@@ -104,11 +101,10 @@ func validateInput(inputUrl string) (string, string, string, bool) {
 	token, ok := os.LookupEnv("GITHUB_TOKEN")
 
 	if !ok {
-		fmt.Println("API: Error getting token from environment variable")
+		return user, repo, token, fmt.Errorf("validateInput: Error getting token from environment variable")
 	}
-	valid = true
 
-	return user, repo, token, valid
+	return user, repo, token, nil
 }
 
 // Build and a request to the given endpoint; return HTTP response
@@ -238,33 +234,37 @@ func sendGithubRequestList[T Response](endpoint string, token string, maxPages i
 	}
 }
 
-func GetRepoLicense(url string) LicenseResponse {
+func GetRepoLicense(url string) (string, error) {
 	// Returns information about the repository's license
-	user, repo, token, ok := validateInput(url)
-	if !ok {
-		return LicenseResponse{}
+	user, repo, token, err := validateInput(url)
+	if err != nil {
+		return "", fmt.Errorf("GetRepoLicense: %s", err.Error())
 	}
 
 	res, err, statusCode := sendGithubRequest[LicenseResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/license", user, repo), token)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "sendGithubRequest(): %s status code: %d\n", err.Error(), statusCode)
-		return LicenseResponse{}
+		return "", fmt.Errorf("GetRepoLicense: %s", err.Error())
 	}
 
-	return res
+	if res.License.Name != nil {
+		return *res.License.Key, nil
+	} else {
+		return "", fmt.Errorf("GetRepoLicense: License Name pointer is null")
+	}
 }
 
-func GetRepoAverageLifespan(url string) Responsiveness {
+func GetRepoIssueAverageLifespan(url string) (float64, error) {
 	// Returns the average lifespan of issues (open -> close) and the number of issues sampled
-	user, repo, token, ok := validateInput(url)
-	if !ok {
-		return Responsiveness{}
+	user, repo, token, err := validateInput(url)
+	if err != nil {
+		return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 	}
 
 	res, err, statusCode := sendGithubRequestList[IssueResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/issues?state=closed", user, repo), token, 5)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "sendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
-		return Responsiveness{}
+		return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 	}
 
 	totalTime := 0.0
@@ -275,38 +275,40 @@ func GetRepoAverageLifespan(url string) Responsiveness {
 		}
 		ts, err := time.Parse(time.RFC3339, *issue.CreatedAt)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "time.Parse(): %s\n", err.Error())
-			return Responsiveness{}
+			fmt.Fprintf(os.Stderr, "API: time.Parse(): %s\n", err.Error())
+			return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 		}
 		te, err := time.Parse(time.RFC3339, *issue.ClosedAt)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "time.Parse(): %s\n", err.Error())
-			return Responsiveness{}
+			fmt.Fprintf(os.Stderr, "API: time.Parse(): %s\n", err.Error())
+			return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 		}
 		totalTime += te.Sub(ts).Seconds()
 		numIssues += 1
 	}
 	var responsiveness Responsiveness
 	if numIssues > 0 {
-		responsiveness = Responsiveness{AvgLifespan: totalTime / float64(numIssues), NumSampled: numIssues}
+		// Divide total time by 86400 to convert from seconds to days
+		responsiveness = Responsiveness{AvgLifespan: (totalTime / 86400) / float64(numIssues), NumSampled: numIssues}
 	} else {
 		responsiveness = Responsiveness{AvgLifespan: 0, NumSampled: 0}
 	}
 
-	return responsiveness
+	return responsiveness.AvgLifespan, nil
 }
 
-func GetRepoContributors(url string) []Contributor {
-	// Returns a list of contributors with recent (< 1 year old) commits and their number of recent commits
-	user, repo, token, ok := validateInput(url)
-	if !ok {
-		return []Contributor{}
+func GetRepoContributors(url string) (int, int, error) {
+	// From a list of contributors with recent (< 1 year old) commits and their number of recent commits,
+	// returns the sum of the number of commits by the top three contributors, and the total number of commits
+	user, repo, token, err := validateInput(url)
+	if err != nil {
+		return 0, 0, fmt.Errorf("GetRepoContributors: error on validate input")
 	}
 
 	res, err, statusCode := sendGithubRequest[ContributorStatsResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/stats/contributors", user, repo), token)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "sendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
-		return []Contributor{}
+		return 0, 0, fmt.Errorf("GetRepoContributors: %s", err.Error())
 	}
 
 	var contributors []Contributor
@@ -325,5 +327,23 @@ func GetRepoContributors(url string) []Contributor {
 		}
 	}
 
-	return contributors
+	// Need to get top three contributions
+	var c1, c2, c3 int = 0, 0, 0
+	var tot int = 0
+
+	for _, c := range contributors {
+		tot += c.RecentCommits
+		if c.RecentCommits > c1 {
+			c3 = c2
+			c2 = c1
+			c1 = c.RecentCommits
+		} else if c.RecentCommits > c2 {
+			c3 = c2
+			c2 = c.RecentCommits
+		} else if c.RecentCommits > c3 {
+			c3 = c.RecentCommits
+		}
+	}
+
+	return c1 + c2 + c3, tot, nil
 }
