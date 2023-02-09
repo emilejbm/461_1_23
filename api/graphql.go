@@ -4,6 +4,8 @@ GitHub's GraphQL API. getCorrectnessFactors function returns factors in the
 order of watchers, stargazers, totalCommits. A data type in the same form as
 the query structure is required to convert string to json. From json, the data
 is returned.
+
+--Use of GitHub token needs to be changed
 */
 
 package api
@@ -87,10 +89,10 @@ func getGraphqlResponse(ownerName string, repoName string) []uint8 {
 
 func getCorrectnessFactors(ownerName string, repoName string) (watchers int64, stargazers int64, totalCommits int64) {
 
-	ownerName := "expressjs"
-	repoName := "express"
+	ownerNameTest := "expressjs"
+	repoNameTest := "express"
 
-	data := getGraphqlResponse(ownerName, repoName)
+	data := getGraphqlResponse(ownerNameTest, repoNameTest)
 	var factors CorrectnessFactors
 	newerr := json.Unmarshal([]byte(string(data)), &factors)
 
@@ -98,9 +100,9 @@ func getCorrectnessFactors(ownerName string, repoName string) (watchers int64, s
 		fmt.Printf("error %s\n", newerr)
 	}
 
-	watchers := factors.Data.Repository.StargazerCount
-	stargazers := factors.Data.Repository.Watchers.TotalCount
-	totalCommits := factors.Data.Repository.DefaultBranchRef.Target.History.TotalCount
+	watchers = factors.Data.Repository.StargazerCount
+	stargazers = factors.Data.Repository.Watchers.TotalCount
+	totalCommits = factors.Data.Repository.DefaultBranchRef.Target.History.TotalCount
 
 	return watchers, stargazers, totalCommits
 
