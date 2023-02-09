@@ -9,25 +9,25 @@ is returned.
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
-	"bytes"
-	"io/ioutil"
 )
 
 type CorrectnessFactors struct {
 	Data struct {
 		Repository struct {
-			StargazerCount	int64
-			Watchers struct {
-				TotalCount	int64
+			StargazerCount int64
+			Watchers       struct {
+				TotalCount int64
 			}
 			DefaultBranchRef struct {
 				Target struct {
 					History struct {
-						TotalCount	int64
+						TotalCount int64
 					}
 				}
 			}
@@ -37,9 +37,9 @@ type CorrectnessFactors struct {
 
 func buildQuery(ownerName string, repoName string) (query map[string]string) {
 	var correctnessQuery = map[string]string{
-		"query":`
+		"query": `
 		{
-			repository(owner:`+`"`+ownerName+`", name:`+`"`+repoName+`") {
+			repository(owner:` + `"` + ownerName + `", name:` + `"` + repoName + `") {
 				name 
 				stargazerCount
 				watchers {
@@ -61,23 +61,23 @@ func buildQuery(ownerName string, repoName string) (query map[string]string) {
 	return correctnessQuery
 }
 
-func getGraphqlResponse(ownerName string, repoName string) ([]uint8) {
+func getGraphqlResponse(ownerName string, repoName string) []uint8 {
 
 	query := buildQuery(ownerName, repoName)
-	
-    jsonValue, _ := json.Marshal(query)
-    req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(jsonValue))
+
+	jsonValue, _ := json.Marshal(query)
+	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(jsonValue))
 	req.Header.Add("Authorization", "Bearer "+"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")
-    client := &http.Client{Timeout: time.Second * 10}
-    res, err := client.Do(req)
+	client := &http.Client{Timeout: time.Second * 10}
+	res, err := client.Do(req)
 	defer res.Body.Close()
 
-    if err != nil {
-        fmt.Printf("The HTTP request failed with error %s\n", err)
-    }
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	}
 
-    data, err := ioutil.ReadAll(res.Body)
-	
+	data, err := ioutil.ReadAll(res.Body)
+
 	if err != nil {
 		fmt.Printf("Reading body failed with error %s\n", err)
 	}
@@ -92,16 +92,16 @@ func getCorrectnessFactors(ownerName string, repoName string) (watchers int64, s
 
 	data := getGraphqlResponse(ownerName, repoName)
 	var factors CorrectnessFactors
-    newerr := json.Unmarshal([]byte(string(data)), &factors)
+	newerr := json.Unmarshal([]byte(string(data)), &factors)
 
-    if newerr != nil {
-        fmt.Printf("error %s\n", newerr)
-    }
+	if newerr != nil {
+		fmt.Printf("error %s\n", newerr)
+	}
 
 	watchers := factors.Data.Repository.StargazerCount
 	stargazers := factors.Data.Repository.Watchers.TotalCount
 	totalCommits := factors.Data.Repository.DefaultBranchRef.Target.History.TotalCount
 
 	return watchers, stargazers, totalCommits
-	
-} 
+
+}
