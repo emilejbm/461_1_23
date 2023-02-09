@@ -1,0 +1,48 @@
+Zope Public License, versions 2.0 and 2.1
+License of ZLib
+XFree86 1.1 License
+X11 License
+WxWidgets Library License
+WTFPL, Version 2
+License of WebM
+W3C Software Notice and License
+License of Vim, Version 6.1 or later
+The Unlicense
+Universal Permissive License (UPL) Unicode, Inc. License Agreement for Data Files and Software
+Standard ML of New Jersey Copyright License
+SGI Free Software License B, version 2.0
+License of Ruby
+License of Python 1.6a2 and earlier versions
+License of Python 2.0.1, 2.1.1, and newer versions
+Public Domain
+OpenLDAP License, Version 2.7
+NCSA/University of Illinois Open Source License
+Mozilla Public License (MPL) version 2.0
+ISC License
+Intel Open Source License
+Independent JPEG Group License
+License of imlib2
+License of the iMatix Standard Function Library
+Historical Permission Notice and Disclaimer 
+Freetype Project License
+FreeBSD license
+Expat License (MIT License)
+EU DataGrid Software License
+Eiffel Forum License, version 2
+Educational Community License 2.0
+eCos license version 2.0
+Cryptix General License
+The Clear BSD License
+CeCILL version 2
+Modified BSD license
+Boost Software License
+Berkeley Database License
+Clarified Artistic License
+Artistic License 2.0
+Apache License, Version 2.0
+GNU All-Permissive License
+GNU Affero General Public License (AGPL) version 3
+GNU Lesser General Public License (LGPL) version 2.1
+GNU Lesser General Public License (LGPL) version 3
+GNU General Public License (GPL) version 2
+GNU General Public License (GPL) version 3
