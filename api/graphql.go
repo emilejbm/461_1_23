@@ -14,8 +14,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -37,12 +37,11 @@ type CorrectnessFactors struct {
 	}
 }
 
-func buildQuery(ownerName string, repoName string) (query map[string]string) {
+func buildCorrectnessQuery(ownerName string, repoName string) (query map[string]string) {
 	var correctnessQuery = map[string]string{
 		"query": `
 		{
-			repository(owner:` + `"` + ownerName + `", name:` + `"` + repoName + `") {
-				name 
+			repository(owner:` + `"` + ownerName + `", name:` + `"` + repoName + `") { 
 				stargazerCount
 				watchers {
 					totalCount
@@ -63,47 +62,36 @@ func buildQuery(ownerName string, repoName string) (query map[string]string) {
 	return correctnessQuery
 }
 
-func getGraphqlResponse(ownerName string, repoName string) []uint8 {
+func getCorrectnessFactors(ownerName string, repoName string) (watchers int64, stargazers int64, totalCommits int64, err error) {
 
-	query := buildQuery(ownerName, repoName)
+	query := buildCorrectnessQuery(ownerName, repoName)
+	token, ok := os.LookupEnv("GITHUB_TOKEN")
+
+	if !ok {
+		return 0, 0, 0, fmt.Errorf("validateInput: Error getting token from environment variable")
+	}
 
 	jsonValue, _ := json.Marshal(query)
 	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(jsonValue))
-	req.Header.Add("Authorization", "Bearer "+"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")
+	req.Header.Add("Authorization", "Bearer "+token)
 	client := &http.Client{Timeout: time.Second * 10}
 	res, err := client.Do(req)
 	defer res.Body.Close()
 
 	if err != nil {
-		fmt.Printf("The HTTP request failed with error %s\n", err)
+		return 0, 0, 0, fmt.Errorf("The GraphQL query failed with error %s\n", err)
 	}
 
-	data, err := ioutil.ReadAll(res.Body)
+	var factors CorrectnessFactors
+	err = json.NewDecoder(res.Body).Decode(&factors)
 
 	if err != nil {
-		fmt.Printf("Reading body failed with error %s\n", err)
-	}
-
-	return data
-}
-
-func getCorrectnessFactors(ownerName string, repoName string) (watchers int64, stargazers int64, totalCommits int64) {
-
-	ownerNameTest := "expressjs"
-	repoNameTest := "express"
-
-	data := getGraphqlResponse(ownerNameTest, repoNameTest)
-	var factors CorrectnessFactors
-	newerr := json.Unmarshal([]byte(string(data)), &factors)
-
-	if newerr != nil {
-		fmt.Printf("error %s\n", newerr)
+		return 0, 0, 0, fmt.Errorf("Reading body failed with errorr %s\n", err)
 	}
 
 	watchers = factors.Data.Repository.StargazerCount
 	stargazers = factors.Data.Repository.Watchers.TotalCount
 	totalCommits = factors.Data.Repository.DefaultBranchRef.Target.History.TotalCount
 
-	return watchers, stargazers, totalCommits
-
+	return watchers, stargazers, totalCommits, nil
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -329,41 +328,29 @@ func GetRepoContributors(url string) []Contributor {
 	return contributors
 }
 
-func getPackage(npmUrl string) (packageName string) {
-
+func getPackageName(npmUrl string) (packageName string) {
 	i := strings.Index(npmUrl, "package")
 	return npmUrl[i+len("package")+1 : len(npmUrl)]
 }
 
-func NPMtoGithubUrl(npmUrl string) (githubUrl string) {
-	npmPackage := getPackage(npmUrl)
-	NPMendpoint := "https://registry.npmjs.org/" + npmPackage
+func NPMtoGithubUrl(npmUrl string) (githubUrl string, err error) {
 
-	res, err := http.Get(NPMendpoint)
+	packageName := getPackageName(npmUrl)
+	app := "npm"
+	arg := []string{"repo", packageName, "--browser", "false"}
+
+	exec_output := exec.Command(app, arg...)
+	stdout, err := exec_output.Output()
 
 	if err != nil {
-		fmt.Printf("The HTTP request failed with error %s\n", err)
+		fmt.Println("Error getting Github url from NPM url: %s", err)
+		return "", err
 	}
 
-	data, err := ioutil.ReadAll(res.Body)
-	all_data := string(data)
+	cmdOutput := string(stdout)
+	i := strings.Index(cmdOutput, "https://github.com/")
+	restOfStr := cmdOutput[i : len(cmdOutput)-1]
+	j := strings.Index(restOfStr, packageName)
 
-	i := strings.Index(all_data, "git+https://github.com/")
-
-	// 60 is an arbitrary number to (surely) capture the entire url name
-	// done so that parsing is not done over entire string of all data 
-	githubUrl = all_data[i : i+60]
-	escapeIndex := 0
-	j := 0
-
-	for j = range githubUrl {
-		if string(githubUrl[j]) == "/" {
-			escapeIndex += 1
-		}
-		if escapeIndex == 4 && string(githubUrl[j]) == "." {
-			break
-		}
-	}
-
-	return githubUrl[4 : j+4]
+	return cmdOutput[i : i+j+len(packageName)], nil
 }
