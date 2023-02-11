@@ -36,20 +36,20 @@ func ComputeRampTime(found int, total int) float64 {
 	return float64(found) / float64(total)
 }
 
-func ComputeCorrectness(clones int, views int, commits int) float64 {
-	// Correctness is determined by a sum three factors: clones, views, and commits
+func ComputeCorrectness(watchers int64, stargazers int64, commits int64) float64 {
+	// Correctness is determined by a sum three factors: watchers, stargazers, and commits
 	// Each of these are calculated using a an exponential decay function to ensure that
 	// the domain is from -inf to inf, while the range is still between 0 and the weight (0.117, 0.550, or 0.333)
 	// As a rough benchmark, I determined the quantity of each metric to reach a certain output value.
 
 	// Example:
-	// For clones, the weight is 0.117. To get 80% of that weight, we need the repository to have 2000 clones
+	// For watchers, the weight is 0.117. To get 80% of that weight, we need the repository to have 2000 watchers
 	// The result is cs = 0.117 * 0.8 = 0.0936
 
 	var cs, vs, ms float64
-	cs = 0.117 * (1 - math.Exp(-0.001*float64(clones)))   // 2k clones for 80%
-	vs = 0.550 * (1 - math.Exp(-0.00002*float64(views)))  // 100k views for 86%
-	ms = 0.333 * (1 - math.Exp(-0.0005*float64(commits))) // 6000 commits for 90% of this
+	cs = 0.117 * (1 - math.Exp(-0.001*float64(watchers)))     // 2k watchers for 80%
+	vs = 0.550 * (1 - math.Exp(-0.00002*float64(stargazers))) // 100k stargazers for 86%
+	ms = 0.333 * (1 - math.Exp(-0.0005*float64(commits)))     // 6000 commits for 90% of this
 
 	return cs + vs + ms
 }

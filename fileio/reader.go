@@ -43,6 +43,10 @@ func ReadFile(path string, ch chan<- string) {
 		fmt.Println("fileio: read entry:", scanner.Text(), isValidURL(scanner.Text()))
 		if isValidURL(scanner.Text()) {
 			ch <- scanner.Text()
+		} else {
+			// Abort entire process if there is an invalid URL in the file
+			fmt.Fprintf(os.Stderr, "Error processing file, invalid url: %s\n", scanner.Text())
+			os.Exit(1)
 		}
 	}
 

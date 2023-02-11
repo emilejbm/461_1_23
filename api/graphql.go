@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -62,14 +61,13 @@ func BuildCorrectnessQuery(ownerName string, repoName string) (query map[string]
 	return correctnessQuery
 }
 
-func GetCorrectnessFactors(ownerName string, repoName string) (watchers int64, stargazers int64, totalCommits int64, err error) {
+func GetCorrectnessFactors(url string) (watchers int64, stargazers int64, totalCommits int64, err error) {
+	ownerName, repoName, token, err := validateInput(url)
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("GetCorrectnessFactors: Error on validate input")
+	}
 
 	query := BuildCorrectnessQuery(ownerName, repoName)
-	token, ok := os.LookupEnv("GITHUB_TOKEN")
-
-	if !ok {
-		return 0, 0, 0, fmt.Errorf("validateInput: Error getting token from environment variable")
-	}
 
 	jsonValue, _ := json.Marshal(query)
 	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(jsonValue))
