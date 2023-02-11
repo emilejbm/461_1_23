@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+const retry_sleep_time = 10
+const max_retry_count = 4
+
 type Response interface {
 	Validate() bool
 }
@@ -115,16 +118,30 @@ func sendGithubRequestHelper(endpoint string, token string) (res *http.Response,
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
 
-	res, err = http.DefaultClient.Do(req)
+	retry_count := 0
 
-	if err != nil {
-		err = fmt.Errorf("Failed to send HTTP request")
-		statusCode = 500 // Internal server error
-	} else if res.StatusCode != 200 {
-		statusCode = res.StatusCode // forward API error code
-		err = fmt.Errorf("GitHub request responded with error code %d", statusCode)
+	for {
+		res, err = http.DefaultClient.Do(req)
+		retry_count += 1
+
+		if err != nil {
+			err = fmt.Errorf("Failed to send HTTP request")
+			statusCode = 500 // Internal server error
+		} else if res.StatusCode == 202 {
+			if retry_count <= max_retry_count {
+				fmt.Println("API: Github status code 202 - Retry #", retry_count, " for ", endpoint)
+				time.Sleep(retry_sleep_time * time.Second)
+				continue // Retry
+			} else {
+				statusCode = res.StatusCode
+				err = fmt.Errorf("Github request exceed max retry count for error code 202")
+			}
+		} else if res.StatusCode != 200 {
+			statusCode = res.StatusCode // forward API error code
+			err = fmt.Errorf("GitHub request responded with error code %d", statusCode)
+		}
+		return
 	}
-	return
 }
 
 // Decode HTTP response using JSON decoder
