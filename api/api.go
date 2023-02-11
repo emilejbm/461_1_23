@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -363,4 +364,31 @@ func GetRepoContributors(url string) (int, int, error) {
 	}
 
 	return c1 + c2 + c3, tot, nil
+}
+
+func getPackageName(npmUrl string) (packageName string) {
+	i := strings.Index(npmUrl, "package")
+	return npmUrl[i+len("package")+1 : len(npmUrl)]
+}
+
+func NPMtoGithubUrl(npmUrl string) (githubUrl string, err error) {
+
+	packageName := getPackageName(npmUrl)
+	app := "npm"
+	arg := []string{"repo", packageName, "--browser", "false"}
+
+	exec_output := exec.Command(app, arg...)
+	stdout, err := exec_output.Output()
+
+	if err != nil {
+		fmt.Println("Error getting Github url from NPM url: %s", err)
+		return "", err
+	}
+
+	cmdOutput := string(stdout)
+	i := strings.Index(cmdOutput, "https://github.com/")
+	restOfStr := cmdOutput[i : len(cmdOutput)-1]
+	j := strings.Index(restOfStr, packageName)
+
+	return cmdOutput[i : i+j+len(packageName)], nil
 }
