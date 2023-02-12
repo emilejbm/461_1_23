@@ -36,7 +36,7 @@ type CorrectnessFactors struct {
 	}
 }
 
-func BuildCorrectnessQuery(ownerName string, repoName string) (query map[string]string) {
+func buildCorrectnessQuery(ownerName string, repoName string) (query map[string]string) {
 	var correctnessQuery = map[string]string{
 		"query": `
 		{
@@ -62,12 +62,12 @@ func BuildCorrectnessQuery(ownerName string, repoName string) (query map[string]
 }
 
 func GetCorrectnessFactors(url string) (watchers int64, stargazers int64, totalCommits int64, err error) {
-	ownerName, repoName, token, err := validateInput(url)
+	ownerName, repoName, token, err := ValidateInput(url)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("GetCorrectnessFactors: Error on validate input")
 	}
 
-	query := BuildCorrectnessQuery(ownerName, repoName)
+	query := buildCorrectnessQuery(ownerName, repoName)
 
 	jsonValue, _ := json.Marshal(query)
 	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(jsonValue))

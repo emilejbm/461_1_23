@@ -7,7 +7,13 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"regexp"
+	"strings"
+
 	"github.com/spf13/cobra"
+	//"github.com/19chonm/461_1_23/api"
 )
 
 var testCmd = &cobra.Command{
@@ -22,7 +28,41 @@ var testCmd = &cobra.Command{
 	Should exit 0 on success.`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("CLI: test command recognized")
+		//packagesToTest := []string{"api/", "worker/"}
+
+		app := "go"
+		testArgs := []string{"test", "-v", "-coverpkg=./...", "-coverprofile=profile.cov", "./..."}
+		//testArgs := []string{"test", "./...", "-cover", "-v"}
+
+		exec_output := exec.Command(app, testArgs...)
+		stdout, err := exec_output.CombinedOutput()
+
+		// distinction between "PASS" and "--- PASS" because if all tests cases pass,
+		// "PASS" is printed out again
+		output := string(stdout)
+		testsPassed := strings.Count(output, "--- PASS")
+		testsRan := strings.Count(output, "=== RUN")
+
+		re := regexp.MustCompile(`(?P<coverage>coverage:\s)(?P<numbers>\d+\.\d)(?P<ofstatement>%\sof\sstatements in ./...)`)
+		result := make(map[string]string)
+		match := re.FindStringSubmatch(output)
+		//fmt.Println(match)
+		for i, name := range re.SubexpNames() {
+			if i != 0 && name != "" {
+				result[name] = match[i]
+			}
+		}
+
+		coverage := result["numbers"] + "%"
+
+		if err != nil || testsPassed > testsRan {
+			fmt.Println("CLI: ", err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Printf("%d/%d test cases passed. %s line coverage achieved\n", testsPassed, testsRan, coverage)
+		os.Exit(0)
+
 	},
 }
 

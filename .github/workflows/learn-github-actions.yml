@@ -2,6 +2,13 @@ name: run-commands
 run-name: ${{ github.actor }} is trying to integrate
 on: [push]
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint with Go fmt
+        run: gofmt -w -s .
+
   autograde-commands:
     runs-on: ubuntu-latest
     steps:

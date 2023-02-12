@@ -1,0 +1,8 @@
+https://www.npmjs.com/package/chalk
+https://github.com/jonschlinkert/even
+https://github.com/expressjs/express
+https://github.com/request/request
+https://github.com/facebook/react
+https://www.npmjs.com/package/even
+https://www.npmjs.com/package/react
+https://www.npmjs.com/package/express

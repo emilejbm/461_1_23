@@ -10,7 +10,7 @@ import (
 
 const url_ch_size = 100 // Size of the buffer for the URL channel
 
-func isValidURL(url_str string) bool {
+func IsValidURL(url_str string) bool {
 	// Returns true if the domain or the url is github.com or npmjs.com, false otherwise
 	u, e := url.Parse(url_str)
 	if e != nil {
@@ -40,8 +40,8 @@ func ReadFile(path string, ch chan<- string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() { // The default split function is ScanLines
-		fmt.Println("fileio: read entry:", scanner.Text(), isValidURL(scanner.Text()))
-		if isValidURL(scanner.Text()) {
+		fmt.Println("fileio: read entry:", scanner.Text(), IsValidURL(scanner.Text()))
+		if IsValidURL(scanner.Text()) {
 			ch <- scanner.Text()
 		} else {
 			// Abort entire process if there is an invalid URL in the file

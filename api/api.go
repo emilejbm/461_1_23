@@ -77,27 +77,27 @@ type Contributor struct {
 	RecentCommits int    `json:"recent_commits"`
 }
 
-func validateInput(inputUrl string) (string, string, string, error) {
+func ValidateInput(inputUrl string) (string, string, string, error) {
 	user := ""
 	repo := ""
 	token := ""
 
 	// validate URL
 	if inputUrl == "" {
-		return user, repo, token, fmt.Errorf("validateInput: InputURL not provided")
+		return "", "", "", fmt.Errorf("ValidateInput: InputURL not provided")
 	}
 
 	urlObject, err := url.Parse(inputUrl)
 	if err != nil {
-		return user, repo, token, fmt.Errorf("validateInput: InputURL parse error")
+		return "", "", "", fmt.Errorf("ValidateInput: InputURL parse error")
 	}
 	if urlObject.Host != "github.com" {
-		return user, repo, token, fmt.Errorf("validateInput: InputURL is not a GitHub URL: %s", urlObject)
+		return "", "", "", fmt.Errorf("ValidateInput: InputURL is not a GitHub URL: %s", urlObject)
 	}
 
 	path := strings.Split(urlObject.EscapedPath(), "/")[1:]
 	if len(path) != 2 {
-		return user, repo, token, fmt.Errorf("validateInput: InputURL does not point to a GitHub repository: %s", urlObject)
+		return "", "", "", fmt.Errorf("ValidateInput: InputURL does not point to a GitHub repository: %s", urlObject)
 	}
 	user, repo = path[0], path[1]
 
@@ -105,14 +105,17 @@ func validateInput(inputUrl string) (string, string, string, error) {
 	token, ok := os.LookupEnv("GITHUB_TOKEN")
 
 	if !ok {
-		return user, repo, token, fmt.Errorf("validateInput: Error getting token from environment variable")
+		return "", "", "", fmt.Errorf("ValidateInput: Error getting token from environment variable")
+	}
+	if token == "" {
+		return "", "", "", fmt.Errorf("ValidateInput: Token is empty")
 	}
 
 	return user, repo, token, nil
 }
 
 // Build and a request to the given endpoint; return HTTP response
-func sendGithubRequestHelper(endpoint string, token string) (res *http.Response, err error, statusCode int) {
+func SendGithubRequestHelper(endpoint string, token string) (res *http.Response, err error, statusCode int) {
 	// build GitHub API request
 	req, _ := http.NewRequest(http.MethodGet, endpoint, nil)
 	req.Header.Add("Accept", "application/vnd.github+json")
@@ -124,21 +127,22 @@ func sendGithubRequestHelper(endpoint string, token string) (res *http.Response,
 	for {
 		res, err = http.DefaultClient.Do(req)
 		retry_count += 1
-
 		if err != nil {
 			err = fmt.Errorf("Failed to send HTTP request")
 			statusCode = 500 // Internal server error
-		} else if res.StatusCode == 202 {
+			return
+		}
+		statusCode = res.StatusCode
+		if res.StatusCode == 202 {
 			if retry_count <= max_retry_count {
 				fmt.Println("API: Github status code 202 - Retry #", retry_count, " for ", endpoint)
 				time.Sleep(retry_sleep_time * time.Second)
 				continue // Retry
 			} else {
-				statusCode = res.StatusCode
 				err = fmt.Errorf("Github request exceed max retry count for error code 202")
+				statusCode = 500
 			}
 		} else if res.StatusCode != 200 {
-			statusCode = res.StatusCode // forward API error code
 			err = fmt.Errorf("GitHub request responded with error code %d", statusCode)
 		}
 		return
@@ -146,7 +150,7 @@ func sendGithubRequestHelper(endpoint string, token string) (res *http.Response,
 }
 
 // Decode HTTP response using JSON decoder
-func decodeResponse[T any](res *http.Response) (jsonRes T, err error) {
+func DecodeResponse[T any](res *http.Response) (jsonRes T, err error) {
 	decoder := json.NewDecoder(res.Body)
 	for {
 		err = decoder.Decode(&jsonRes)
@@ -160,7 +164,7 @@ func decodeResponse[T any](res *http.Response) (jsonRes T, err error) {
 }
 
 // Set a query parameter on an HTTP request
-func setQueryParameter(endpoint *string, parameter string, value string) (err error) {
+func SetQueryParameter(endpoint *string, parameter string, value string) (err error) {
 	var urlObject *url.URL
 	urlObject, err = url.Parse(*endpoint)
 	if err != nil {
@@ -174,13 +178,13 @@ func setQueryParameter(endpoint *string, parameter string, value string) (err er
 }
 
 // Send GitHub API request and return response of type T
-func sendGithubRequest[T Response](endpoint string, token string) (jsonRes T, err error, statusCode int) {
-	res, err, statusCode := sendGithubRequestHelper(endpoint, token)
+func SendGithubRequest[T Response](endpoint string, token string) (jsonRes T, err error, statusCode int) {
+	res, err, statusCode := SendGithubRequestHelper(endpoint, token)
 	if err != nil {
 		return
 	}
 
-	jsonRes, err = decodeResponse[T](res)
+	jsonRes, err = DecodeResponse[T](res)
 
 	if !jsonRes.Validate() {
 		err = fmt.Errorf("Failed to parse GitHub response")
@@ -201,22 +205,23 @@ func sendGithubRequest[T Response](endpoint string, token string) (jsonRes T, er
 
 // Send GitHub API request and return response of type T
 // Follows pages, up to maxPages
-func sendGithubRequestList[T Response](endpoint string, token string, maxPages int) (jsonRes []T, err error, statusCode int) {
-	err = setQueryParameter(&endpoint, "per_page", "100")
+func SendGithubRequestList[T Response](endpoint string, token string, maxPages int) (jsonRes []T, err error, statusCode int) {
+	err = SetQueryParameter(&endpoint, "per_page", "100")
 	if err != nil {
+		err = fmt.Errorf("Failed to set query parameter")
 		statusCode = 500 // Internal server error
 		return
 	}
 	jsonRes = make([]T, 0, maxPages*100)
 	for {
 		var res *http.Response
-		res, err, statusCode = sendGithubRequestHelper(endpoint, token)
+		res, err, statusCode = SendGithubRequestHelper(endpoint, token)
 		if err != nil {
 			return
 		}
 
 		var partialJsonRes []T = make([]T, 0, 100)
-		partialJsonRes, err = decodeResponse[[]T](res)
+		partialJsonRes, err = DecodeResponse[[]T](res)
 
 		for _, t := range partialJsonRes {
 			if !t.Validate() {
@@ -254,14 +259,17 @@ func sendGithubRequestList[T Response](endpoint string, token string, maxPages i
 
 func GetRepoLicense(url string) (string, error) {
 	// Returns information about the repository's license
-	user, repo, token, err := validateInput(url)
+	user, repo, token, err := ValidateInput(url)
 	if err != nil {
 		return "", fmt.Errorf("GetRepoLicense: %s", err.Error())
 	}
 
-	res, err, statusCode := sendGithubRequest[LicenseResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/license", user, repo), token)
+	res, err, statusCode := SendGithubRequest[LicenseResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/license", user, repo), token)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "sendGithubRequest(): %s status code: %d\n", err.Error(), statusCode)
+		if statusCode == 404 {
+			return "", nil // if license not found, just return empty string
+		}
+		fmt.Fprintf(os.Stderr, "SendGithubRequest(): %s status code: %d\n", err.Error(), statusCode)
 		return "", fmt.Errorf("GetRepoLicense: %s", err.Error())
 	}
 
@@ -274,14 +282,14 @@ func GetRepoLicense(url string) (string, error) {
 
 func GetRepoIssueAverageLifespan(url string) (float64, error) {
 	// Returns the average lifespan of issues (open -> close) and the number of issues sampled
-	user, repo, token, err := validateInput(url)
+	user, repo, token, err := ValidateInput(url)
 	if err != nil {
 		return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 	}
 
-	res, err, statusCode := sendGithubRequestList[IssueResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/issues?state=closed", user, repo), token, 5)
+	res, err, statusCode := SendGithubRequestList[IssueResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/issues?state=closed", user, repo), token, 5)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "sendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
+		fmt.Fprintf(os.Stderr, "SendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
 		return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 	}
 
@@ -318,14 +326,14 @@ func GetRepoIssueAverageLifespan(url string) (float64, error) {
 func GetRepoContributors(url string) (int, int, error) {
 	// From a list of contributors with recent (< 1 year old) commits and their number of recent commits,
 	// returns the sum of the number of commits by the top three contributors, and the total number of commits
-	user, repo, token, err := validateInput(url)
+	user, repo, token, err := ValidateInput(url)
 	if err != nil {
 		return 0, 0, fmt.Errorf("GetRepoContributors: error on validate input")
 	}
 
-	res, err, statusCode := sendGithubRequest[ContributorStatsResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/stats/contributors", user, repo), token)
+	res, err, statusCode := SendGithubRequest[ContributorStatsResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/stats/contributors", user, repo), token)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "sendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
+		fmt.Fprintf(os.Stderr, "SendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
 		return 0, 0, fmt.Errorf("GetRepoContributors: %s", err.Error())
 	}
 
@@ -366,12 +374,12 @@ func GetRepoContributors(url string) (int, int, error) {
 	return c1 + c2 + c3, tot, nil
 }
 
-func getPackageName(npmUrl string) (packageName string) {
+func GetPackageName(npmUrl string) (packageName string) {
 	i := strings.Index(npmUrl, "package")
-	return npmUrl[i+len("package")+1 : len(npmUrl)]
+	return npmUrl[i+len("package")+1:]
 }
 
-func getNthOccurance(s string, cha rune, i int) int {
+func GetNthOccurance(s string, cha rune, i int) int {
 	// Find Nth occurance of a character in a string, return the index
 	cnt := 0
 	for z, c := range s {
@@ -398,7 +406,7 @@ func GetGithubUrl(npmUrl string) (githubUrl string, err error) {
 	}
 
 	// Convert url
-	packageName := getPackageName(npmUrl)
+	packageName := GetPackageName(npmUrl)
 	app := "npm"
 	arg := []string{"repo", packageName, "--browser", "false"}
 
@@ -406,7 +414,7 @@ func GetGithubUrl(npmUrl string) (githubUrl string, err error) {
 	stdout, err := exec_output.Output()
 
 	if err != nil {
-		fmt.Println("Error getting Github url from NPM url: %s", err)
+		fmt.Printf("Error getting Github url from NPM url: %s", err)
 		return "", err
 	}
 
@@ -419,7 +427,7 @@ func GetGithubUrl(npmUrl string) (githubUrl string, err error) {
 	i := strings.Index(cmdOutput, "https://github.com/")
 	restOfStr := cmdOutput[i : len(cmdOutput)-1]
 	j := strings.Index(restOfStr, "\n")     // Filter to end of new line
-	k := getNthOccurance(restOfStr, '/', 5) // Find 5th /
+	k := GetNthOccurance(restOfStr, '/', 5) // Find 5th /
 
 	// Get correct substring so we get a github url in the following format:
 	// https://github.com/[owner]/[repo]

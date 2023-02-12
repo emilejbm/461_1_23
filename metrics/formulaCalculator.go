@@ -25,6 +25,12 @@ func ComputeNetScore(fs []Factor) float64 {
 		sum += f.Value * f.Weight
 	}
 
+	if sum > 1 {
+		sum = 1
+	} else if sum < 0 {
+		sum = 0
+	}
+
 	return sum
 }
 

@@ -4,6 +4,8 @@ metric_cli
 tmpl/index.html
 awesome-go
 vendor
+profile.cov
+profile
 
 # Folders
 venv
