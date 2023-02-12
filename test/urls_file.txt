@@ -4,7 +4,6 @@ https://www.npmjs.com/package/express
 https://github.com/expressjs/express
 https://www.npmjs.com/package/chalk
 https://www.npmjs.com/package/lodash
-https://www.google.com/search?q=npmjs
 https://www.npmjs.com/package/request
 https://github.com/request/request
 https://www.npmjs.com/package/commander
