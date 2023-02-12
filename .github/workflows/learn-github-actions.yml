@@ -15,9 +15,7 @@ jobs:
       - name: Set env
         run: echo "ABSFILEPATH=$(readlink -f test/urls_file.txt)" >> $GITHUB_ENV
       - name: Run URL_FILE
-        run:
-          ABSFILEPATH=$(readlink -f test/urls_file.txt
-          ./run "${ABSFILEPATH}"
+        run: ./run "${ABSFILEPATH}"
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
