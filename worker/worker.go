@@ -11,34 +11,47 @@ import (
 func runTask(url string, ratingch chan<- fileio.Rating) {
 	fmt.Println("My job is", url)
 
+	// Convert url to Github URL
+	github_url, err := api.GetGithubUrl(url)
+	if err != nil {
+		fmt.Println("worker: ERROR Unable to get github url ", url, " Error:", err)
+		return
+	}
+
 	// Get Data from Github API
-	license_key, err := api.GetRepoLicense(url)
+	license_key, err := api.GetRepoLicense(github_url)
 	if err != nil {
-		fmt.Println("worker: ERROR Unable to get data for ", url, " License Errored:", err)
+		fmt.Println("worker: ERROR Unable to get data for ", github_url, " License Errored:", err)
 		return
 	}
 
-	avg_lifespan, err := api.GetRepoIssueAverageLifespan(url)
+	avg_lifespan, err := api.GetRepoIssueAverageLifespan(github_url)
 	if err != nil {
-		fmt.Println("worker: ERROR Unable to get data for ", url, " AvgLifespan Errored:", err)
+		fmt.Println("worker: ERROR Unable to get data for ", github_url, " AvgLifespan Errored:", err)
 		return
 	}
 
-	top_recent_commits, total_recent_commits, err := api.GetRepoContributors(url)
+	top_recent_commits, total_recent_commits, err := api.GetRepoContributors(github_url)
 	if err != nil {
-		fmt.Println("worker: ERROR Unable to get data for ", url, " ContributorsCommits Errored:", err)
+		fmt.Println("worker: ERROR Unable to get data for ", github_url, " ContributorsCommits Errored:", err)
+		return
+	}
+
+	watchers, stargazers, totalCommits, err := api.GetCorrectnessFactors(github_url)
+	if err != nil {
+		fmt.Println("worker: ERROR Unable to get data for ", github_url, " GetCorrectnessFactors Errored:", err)
 		return
 	}
 
 	// Download repository and scan
-	rampup_score, err := metrics.ScanRepo(url)
+	rampup_score, err := metrics.ScanRepo(github_url)
 	if err != nil {
-		fmt.Println("worker: ERROR Unable to get data for ", url, " ScanRepo Errored:", err)
+		fmt.Println("worker: ERROR Unable to get data for ", github_url, " ScanRepo Errored:", err)
 		return
 	}
 
 	// Compute scores
-	correctness_score := metrics.ComputeCorrectness(0, 0, 0) // no data yet
+	correctness_score := metrics.ComputeCorrectness(watchers, stargazers, totalCommits) // no data yet
 	responsiveness_score := metrics.ComputeResponsiveness(avg_lifespan)
 	busfactor_score := metrics.ComputeBusFactor(top_recent_commits, total_recent_commits)
 	license_score := metrics.ComputeLicenseScore(license_key)

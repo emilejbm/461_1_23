@@ -371,8 +371,33 @@ func getPackageName(npmUrl string) (packageName string) {
 	return npmUrl[i+len("package")+1 : len(npmUrl)]
 }
 
-func NPMtoGithubUrl(npmUrl string) (githubUrl string, err error) {
+func getNthOccurance(s string, cha rune, i int) int {
+	// Find Nth occurance of a character in a string, return the index
+	cnt := 0
+	for z, c := range s {
+		if c == cha {
+			cnt += 1
+			if cnt == i {
+				return z
+			}
+		}
+	}
 
+	return -1
+}
+
+func GetGithubUrl(npmUrl string) (githubUrl string, err error) {
+	// Parse url
+	u, e := url.Parse(npmUrl)
+	if e != nil {
+		return "", fmt.Errorf("error parsing URL in NPMtoGithubUrl")
+	}
+	hostname := strings.TrimPrefix(u.Hostname(), "www.")
+	if hostname == "github.com" {
+		return npmUrl, nil
+	}
+
+	// Convert url
 	packageName := getPackageName(npmUrl)
 	app := "npm"
 	arg := []string{"repo", packageName, "--browser", "false"}
@@ -385,10 +410,23 @@ func NPMtoGithubUrl(npmUrl string) (githubUrl string, err error) {
 		return "", err
 	}
 
+	// Sample response to parse:
+	//
+	// express repo available at the following URL:
+	// 	https://github.com/expressjs/express/main/
+
 	cmdOutput := string(stdout)
 	i := strings.Index(cmdOutput, "https://github.com/")
 	restOfStr := cmdOutput[i : len(cmdOutput)-1]
-	j := strings.Index(restOfStr, packageName)
+	j := strings.Index(restOfStr, "\n")     // Filter to end of new line
+	k := getNthOccurance(restOfStr, '/', 5) // Find 5th /
 
-	return cmdOutput[i : i+j+len(packageName)], nil
+	// Get correct substring so we get a github url in the following format:
+	// https://github.com/[owner]/[repo]
+	end_idx := j
+	if k < j && k != -1 {
+		end_idx = k
+	}
+
+	return cmdOutput[i : i+end_idx], nil
 }
