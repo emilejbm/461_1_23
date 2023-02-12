@@ -11,9 +11,7 @@ jobs:
       - name: Run build
         run: ./run build
       - name: Run Test
-        run: | 
-        export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-        ./run test
+        run: ./run test
       - name: Set env
         run: echo "ABSFILEPATH=$(readlink -f test/urls_file.txt)" >> $GITHUB_ENV
       - name: Run URL_FILE
@@ -21,3 +19,5 @@ jobs:
           ABSFILEPATH=$(readlink -f test/urls_file.txt
           ./run "${ABSFILEPATH}"
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
