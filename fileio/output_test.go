@@ -6,7 +6,7 @@ import (
 
 // I don't think I have to do this
 func Test_MakeRatingsChannel_Success(t *testing.T) {
-	rating := MakeRatingsChannel()
+	rating := MakeWorkerOutputChannel()
 	if rating == nil {
 		t.Errorf("MakeRatingChannelError occurred")
 	}
