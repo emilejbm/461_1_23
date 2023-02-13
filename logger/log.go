@@ -16,7 +16,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	file, err := os.Create(path + "log.json")
+	file, err := os.OpenFile(path+"log.json", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Println("Failed to create log file")
 		os.Exit(1)
