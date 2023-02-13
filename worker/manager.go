@@ -9,7 +9,7 @@ import (
 
 const numworkers = 5 // Total number of workers/goroutines to use
 
-func StartWorkers(urlch <-chan string, ratingch chan<- fileio.Rating) {
+func StartWorkers(urlch <-chan string, worker_output_ch chan<- fileio.WorkerOutput) {
 	var wg sync.WaitGroup
 
 	wg.Add(numworkers) // Keep track of the number of goroutines being created
@@ -24,11 +24,11 @@ func StartWorkers(urlch <-chan string, ratingch chan<- fileio.Rating) {
 					wg.Done()
 					return
 				}
-				runTask(url, ratingch)
+				runTask(url, worker_output_ch)
 			}
 		}()
 	}
 
 	wg.Wait() // Wait for the threads to finish
-	close(ratingch)
+	close(worker_output_ch)
 }

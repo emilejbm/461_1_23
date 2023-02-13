@@ -40,14 +40,19 @@ func Execute() {
 	} else if filepath.IsAbs(os.Args[1]) {
 		// Create channels for interthread communication
 		url_ch := fileio.MakeUrlChannel()
-		rating_ch := fileio.MakeRatingsChannel()
+		worker_output_ch := fileio.MakeWorkerOutputChannel()
 
-		go fileio.ReadFile(os.Args[1], url_ch)    // Start file reader
-		go worker.StartWorkers(url_ch, rating_ch) // Start workers
+		go fileio.ReadFile(os.Args[1], url_ch)           // Start file reader
+		go worker.StartWorkers(url_ch, worker_output_ch) // Start workers
 
 		// Start output
-		ratings := fileio.Sort_modules(rating_ch)
-		fileio.Print_sorted_output(ratings)
+		ratings, errors := fileio.ReadWorkerResults(worker_output_ch)
+		if len(errors) > 0 {
+			fileio.PrintErrors(errors)
+			os.Exit(1)
+		} else {
+			fileio.Print_sorted_output(ratings)
+		}
 
 	} else if os.Args[1] == "build" || os.Args[1] == "install" ||
 		os.Args[1] == "test" {

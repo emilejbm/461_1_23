@@ -1,20 +1,24 @@
 package worker
 
 import (
+	"fmt"
+
 	"github.com/19chonm/461_1_23/api"
 	"github.com/19chonm/461_1_23/fileio"
 	"github.com/19chonm/461_1_23/logger"
 	"github.com/19chonm/461_1_23/metrics"
 )
 
-func runTask(url string, ratingch chan<- fileio.Rating) {
+func runTask(url string, woutputch chan<- fileio.WorkerOutput) {
 	// fmt.Println("My job is", url)
 	logger.InfoMsg("My job is", url)
+
 	// Convert url to Github URL
 	github_url, err := api.GetGithubUrl(url)
 	if err != nil {
 		// fmt.Println("worker: ERROR Unable to get github url ", url, " Error:", err)
 		logger.DebugMsg("worker: ERROR Unable to get github url ", url, " Error:", err.Error())
+		woutputch <- fileio.WorkerOutput{WorkerErr: fmt.Errorf("worker: ERROR Unable to get github url %s  Error: %s", url, err.Error())}
 		return
 	}
 
@@ -23,6 +27,7 @@ func runTask(url string, ratingch chan<- fileio.Rating) {
 	if err != nil {
 		// fmt.Println("worker: ERROR Unable to get data for ", github_url, " License Errored:", err)
 		logger.DebugMsg("worker: ERROR Unable to get data for ", github_url, " License Errored:", err.Error())
+		woutputch <- fileio.WorkerOutput{WorkerErr: fmt.Errorf("worker: ERROR Unable to get github url %s  License Errored: %s", url, err.Error())}
 		return
 	}
 
@@ -30,6 +35,7 @@ func runTask(url string, ratingch chan<- fileio.Rating) {
 	if err != nil {
 		// fmt.Println("worker: ERROR Unable to get data for ", github_url, " AvgLifespan Errored:", err)
 		logger.DebugMsg("worker: ERROR Unable to get data for ", github_url, " AvgLifespan Errored:", err.Error())
+		woutputch <- fileio.WorkerOutput{WorkerErr: fmt.Errorf("worker: ERROR Unable to get data for %s  AvgLifespan Errored: %s", url, err.Error())}
 		return
 	}
 
@@ -37,6 +43,7 @@ func runTask(url string, ratingch chan<- fileio.Rating) {
 	if err != nil {
 		// fmt.Println("worker: ERROR Unable to get data for ", github_url, " ContributorsCommits Errored:", err)
 		logger.DebugMsg("worker: ERROR Unable to get data for ", github_url, " ContributorsCommits Errored:", err.Error())
+		woutputch <- fileio.WorkerOutput{WorkerErr: fmt.Errorf("worker: ERROR Unable to get data for %s  ContributorsCommits Errored: %s", url, err.Error())}
 		return
 	}
 
@@ -44,6 +51,7 @@ func runTask(url string, ratingch chan<- fileio.Rating) {
 	if err != nil {
 		// fmt.Println("worker: ERROR Unable to get data for ", github_url, " GetCorrectnessFactors Errored:", err)
 		logger.DebugMsg("worker: ERROR Unable to get data for ", github_url, " GetCorrectnessFactors Errored:", err.Error())
+		woutputch <- fileio.WorkerOutput{WorkerErr: fmt.Errorf("worker: ERROR Unable to get data for %s  GetCorrectnessFactors Errored: %s", url, err.Error())}
 		return
 	}
 
@@ -52,6 +60,7 @@ func runTask(url string, ratingch chan<- fileio.Rating) {
 	if err != nil {
 		// fmt.Println("worker: ERROR Unable to get data for ", github_url, " ScanRepo Errored:", err)
 		logger.DebugMsg("worker: ERROR Unable to get data for ", github_url, " ScanRepo Errored:", err.Error())
+		woutputch <- fileio.WorkerOutput{WorkerErr: fmt.Errorf("worker: ERROR Unable to get data for %s  ScanRepo Errored: %s", url, err.Error())}
 		return
 	}
 
@@ -77,5 +86,5 @@ func runTask(url string, ratingch chan<- fileio.Rating) {
 		Responsiveness: responsiveness_score,
 		Correctness:    correctness_score,
 	}
-	ratingch <- r // Send rating to rating channel to be sorted
+	woutputch <- fileio.WorkerOutput{WorkerRating: r, WorkerErr: nil} // Send rating to rating channel to be sorted
 }

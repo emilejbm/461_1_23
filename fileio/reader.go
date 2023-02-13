@@ -37,7 +37,8 @@ func ReadFile(path string, ch chan<- string) {
 	file, e := os.Open(path)
 	if e != nil {
 		logger.InfoMsg("fileio: ", e.Error())
-		return
+		fmt.Fprintf(os.Stderr, "fileio: Error reading file: %s\n", e.Error())
+		os.Exit(1)
 	}
 
 	scanner := bufio.NewScanner(file)
@@ -48,12 +49,15 @@ func ReadFile(path string, ch chan<- string) {
 		} else {
 			// Abort entire process if there is an invalid URL in the file
 			logger.DebugMsg(fmt.Sprintf("Error processing file, invalid url: %s\n", scanner.Text()))
+			fmt.Fprintf(os.Stderr, "fileio: Error processing file, invalid url: %s\n", scanner.Text())
 			os.Exit(1)
 		}
 	}
 
 	if scanner.Err() != nil { // not sure if correct
 		logger.DebugMsg("fileio: ", scanner.Err().Error())
+		fmt.Fprintf(os.Stderr, "fileio: Error reading file: %s\n", e.Error())
+		os.Exit(1)
 	}
 
 	file.Close()
