@@ -7,11 +7,11 @@ function per command with rootCmd.AddCommand(<newCmd>)
 package commands
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/19chonm/461_1_23/fileio"
+	"github.com/19chonm/461_1_23/logger"
 	"github.com/19chonm/461_1_23/worker"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 
 	if len(os.Args) != 2 {
-		fmt.Println(`CLI: Please use one of the recognized commands: 'build', 
+		logger.DebugMsg(`CLI: Please use one of the recognized commands: 'build', 
 		'install', 'test', or 'URL_FILE' where URL_FILE is an absolute path 
 		to a file`)
 	} else if filepath.IsAbs(os.Args[1]) {
@@ -53,11 +53,11 @@ func Execute() {
 		os.Args[1] == "test" {
 
 		if err := rootCmd.Execute(); err != nil {
-			fmt.Println("CLI: Error using CLI ", err)
+			logger.DebugMsg("CLI: Error using CLI ", err.Error())
 			os.Exit(1)
 		}
 	} else {
-		fmt.Println("CLI: Not a recognized command")
+		logger.DebugMsg("CLI: Not a recognized command")
 		os.Exit(1)
 	}
 

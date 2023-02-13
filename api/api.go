@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/19chonm/461_1_23/logger"
 )
 
 const retry_sleep_time = 10
@@ -135,7 +137,7 @@ func SendGithubRequestHelper(endpoint string, token string) (res *http.Response,
 		statusCode = res.StatusCode
 		if res.StatusCode == 202 {
 			if retry_count <= max_retry_count {
-				fmt.Println("API: Github status code 202 - Retry #", retry_count, " for ", endpoint)
+				logger.InfoMsg(fmt.Sprintf("API: Github status code 202 - Retry #%d for %s", retry_count, endpoint))
 				time.Sleep(retry_sleep_time * time.Second)
 				continue // Retry
 			} else {
@@ -269,7 +271,7 @@ func GetRepoLicense(url string) (string, error) {
 		if statusCode == 404 {
 			return "", nil // if license not found, just return empty string
 		}
-		fmt.Fprintf(os.Stderr, "SendGithubRequest(): %s status code: %d\n", err.Error(), statusCode)
+		logger.DebugMsg(fmt.Sprintf("SendGithubRequest(): %s status code: %d\n", err.Error(), statusCode))
 		return "", fmt.Errorf("GetRepoLicense: %s", err.Error())
 	}
 
@@ -289,7 +291,7 @@ func GetRepoIssueAverageLifespan(url string) (float64, error) {
 
 	res, err, statusCode := SendGithubRequestList[IssueResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/issues?state=closed", user, repo), token, 5)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "SendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
+		logger.DebugMsg(fmt.Sprintf("SendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode))
 		return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 	}
 
@@ -301,12 +303,12 @@ func GetRepoIssueAverageLifespan(url string) (float64, error) {
 		}
 		ts, err := time.Parse(time.RFC3339, *issue.CreatedAt)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "API: time.Parse(): %s\n", err.Error())
+			logger.DebugMsg(fmt.Sprintf("API: time.Parse(): %s\n", err.Error()))
 			return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 		}
 		te, err := time.Parse(time.RFC3339, *issue.ClosedAt)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "API: time.Parse(): %s\n", err.Error())
+			logger.DebugMsg(fmt.Sprintf("API: time.Parse(): %s\n", err.Error()))
 			return 0.0, fmt.Errorf("GetRepoIssueAverageLifespan: %s", err.Error())
 		}
 		totalTime += te.Sub(ts).Seconds()
@@ -333,7 +335,7 @@ func GetRepoContributors(url string) (int, int, error) {
 
 	res, err, statusCode := SendGithubRequest[ContributorStatsResponse](fmt.Sprintf("https://api.github.com/repos/%s/%s/stats/contributors", user, repo), token)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "SendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode)
+		logger.DebugMsg(fmt.Sprintf("SendGithubRequest(): %s statuscode: %d\n", err.Error(), statusCode))
 		return 0, 0, fmt.Errorf("GetRepoContributors: %s", err.Error())
 	}
 
@@ -414,7 +416,7 @@ func GetGithubUrl(npmUrl string) (githubUrl string, err error) {
 	stdout, err := exec_output.Output()
 
 	if err != nil {
-		fmt.Printf("Error getting Github url from NPM url: %s", err)
+		logger.DebugMsg(fmt.Sprintf("Error getting Github url from NPM url: %s", err))
 		return "", err
 	}
 

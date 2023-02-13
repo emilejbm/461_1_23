@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/19chonm/461_1_23/logger"
+
 	"github.com/spf13/cobra"
 	//"github.com/19chonm/461_1_23/api"
 )
@@ -56,11 +58,11 @@ var testCmd = &cobra.Command{
 		coverage := result["numbers"] + "%"
 
 		if err != nil || testsPassed > testsRan {
-			fmt.Println("CLI: ", err.Error())
+			logger.DebugMsg("CLI: ", err.Error())
 			os.Exit(1)
 		}
 
-		fmt.Printf("%d/%d test cases passed. %s line coverage achieved\n", testsPassed, testsRan, coverage)
+		logger.InfoMsg(fmt.Sprintf("%d/%d test cases passed. %s line coverage achieved\n", testsPassed, testsRan, coverage))
 		os.Exit(0)
 
 	},

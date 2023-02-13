@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os/exec"
 
+	"github.com/19chonm/461_1_23/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -19,20 +20,35 @@ var installCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// Install cobra
+		// Install Logrus
 		app := "go"
-		arg := []string{"get", "-u", "github.com/spf13/cobra@latest"}
-
+		arg := []string{"get", "github.com/sirupsen/logrus"}
 		exec_output := exec.Command(app, arg...)
 		stdout, err := exec_output.Output()
 
 		if err != nil {
-			fmt.Println("CLI: ", err.Error())
+			logger.DebugMsg("CLI: ", err.Error())
 			return
+		} else {
+			logger.InfoMsg("CLI: Installed Logrus", string(stdout))
+		}
+
+		// Install cobra
+		app = "go"
+		arg = []string{"get", "-u", "github.com/spf13/cobra@latest"}
+
+		exec_output = exec.Command(app, arg...)
+		stdout, err = exec_output.Output()
+
+		if err != nil {
+			logger.DebugMsg("CLI: ", err.Error())
+			return
+		} else {
+			logger.InfoMsg("CLI: Installed Cobra", string(stdout))
 		}
 
 		// Make Python venv
-		fmt.Println("CLI: Make python venv")
+		logger.InfoMsg("CLI: Make python venv")
 		app = "python3"
 		arg = []string{"-m", "venv", "venv"}
 
@@ -40,14 +56,14 @@ var installCmd = &cobra.Command{
 		stdout, err = exec_output.CombinedOutput()
 
 		if err != nil {
-			fmt.Println("CLI: ", fmt.Sprint(err)+": "+string(stdout))
+			logger.DebugMsg("CLI: ", fmt.Sprint(err)+": "+string(stdout))
 			return
 		} else {
-			fmt.Println("CLI: Python venv complete", string(stdout))
+			logger.InfoMsg("CLI: Python venv complete", string(stdout))
 		}
 
 		// Install GitPython
-		fmt.Println("CLI: Installing GitPython")
+		logger.InfoMsg("CLI: Installing GitPython")
 		app = "./venv/bin/pip"
 		arg = []string{"install", "gitpython"}
 
@@ -55,13 +71,13 @@ var installCmd = &cobra.Command{
 		stdout, err = exec_output.CombinedOutput()
 
 		if err != nil {
-			fmt.Println("CLI: ", fmt.Sprint(err)+": "+string(stdout))
+			logger.DebugMsg("CLI: ", fmt.Sprint(err)+": "+string(stdout))
 			return
 		} else {
-			fmt.Println("CLI: Installed GitPython", string(stdout))
+			logger.InfoMsg("CLI: Installed GitPython", string(stdout))
 		}
 
-		fmt.Println("CLI: Installation succesful")
+		logger.InfoMsg("CLI: Installation successful")
 	},
 }
 

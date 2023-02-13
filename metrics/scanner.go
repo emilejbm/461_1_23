@@ -5,13 +5,15 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/19chonm/461_1_23/logger"
 )
 
 func ScanRepo(url string) (float64, error) {
 	app := "./venv/bin/python3"
 	args := []string{"metrics/scanner.py", url}
 	exec_output := exec.Command(app, args...)
-	fmt.Println("scanner: starting process - ", exec_output)
+	logger.InfoMsg("scanner: starting process - ", fmt.Sprintf("%+v", exec_output))
 	stdout, err := exec_output.CombinedOutput()
 	if err != nil {
 		return 0, fmt.Errorf("scanner: process error - %s: %s", err.Error(), string(stdout))
@@ -22,6 +24,6 @@ func ScanRepo(url string) (float64, error) {
 		return 0, fmt.Errorf("scanner: conversion error - %s", err.Error())
 	}
 
-	fmt.Println("scanner: retrieved value - ", value)
+	logger.InfoMsg("scanner: retrieved value - ", fmt.Sprintf("%e", value))
 	return value, nil
 }
