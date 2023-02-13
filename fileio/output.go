@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-
-	"github.com/19chonm/461_1_23/logger"
 )
 
 // 					--- NDJSON ---
@@ -85,7 +83,7 @@ func Make_json_string(r Rating) string {
 
 func Print_sorted_output(ratings []Rating) {
 	for i := range ratings {
-		logger.InfoMsg(Make_json_string(ratings[i]))
+		fmt.Println(Make_json_string(ratings[i]))
 	}
 }
 
