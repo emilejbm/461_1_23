@@ -1,0 +1,19 @@
+.env
+metric_cli
+
+tmpl/index.html
+awesome-go
+vendor
+profile.cov
+profile
+
+# Folders
+venv
+.idea
+.vscode
+test_stale_repositories_log
+*.exe
+# Local Netlify folder
+.netlify
+*.html
+sitemap.xml

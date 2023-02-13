@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Simple wrapper for Go CLI
+# For commands "install" and "build", use "go run"
+# All other commands, use executable
+    # If there is no executable, return an error
+
+if [ "$1" != "" ] && ([ $1 = "install" ] || [ $1 = "build" ]); then 
+    # If command is "install" or "build", use "go run" to run command
+    go run . $@
+else
+    # Otherwise, require the executable to run the command
+    EXECUTABLE_FILE=metric_cli
+    if [ -f "$EXECUTABLE_FILE" ]; then
+        # Run executable, and foward on all arguments
+        ./$EXECUTABLE_FILE $@
+    else
+        echo "No executable, compile using './run install' and './run build'"
+    fi
+fi

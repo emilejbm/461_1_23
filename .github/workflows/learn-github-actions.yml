@@ -1,0 +1,28 @@
+name: run-commands
+run-name: ${{ github.actor }} is trying to integrate
+on: [push]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint with Go fmt
+        run: gofmt -w -s .
+
+  autograde-commands:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run install
+        run: ./run install
+      - name: Run build
+        run: ./run build
+      - name: Run Test
+        run: ./run test
+      - name: Set env
+        run: echo "ABSFILEPATH=$(readlink -f test/urls_file.txt)" >> $GITHUB_ENV
+      - name: Run URL_FILE
+        run: ./run "${ABSFILEPATH}"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

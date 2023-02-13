@@ -1,0 +1,5 @@
+{"metric":"RAMP_UP_SCORE", "api":"clone", "filepath":"metrics/scanner.py", "line":9}
+{"metric":"CORRECTNESS_SCORE", "api":"graphql", "filepath":"api/graphql.go", "line":64}
+{"metric":"BUS_FACTOR_SCORE", "api":"rest", "filepath":"api/api.go", "line":328}
+{"metric":"RESPONSIVE_MAINTAINER_SCORE", "api":"rest", "filepath":"api/api.go", "line":285}
+{"metric":"LICENSE_SCORE", "api":"rest", "filepath":"api/api.go", "line":262}
