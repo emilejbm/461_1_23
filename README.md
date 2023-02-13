@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-# 461_1_23
-
-Emile's fork of 461 project.
-
-Mimi Chon
-Anna Shen
-Emile Baez
-Ben Schwartz
-=======
 Team Members:
 Mimi Chon, Anna Shen, Emile Baez, Ben Schwartz
 
@@ -46,4 +36,3 @@ worker : https://stackoverflow.com/questions/55203251/limiting-number-of-go-rout
 scanner : https://stackoverflow.com/questions/2466735/how-to-sparsely-checkout-only-one-single-file-from-a-git-repository  
 GraphQL API: https://stackoverflow.com/questions/27931139/how-to-use-github-v3-api-to-get-commit-count-for-a-repo
 
->>>>>>> upstream/main
