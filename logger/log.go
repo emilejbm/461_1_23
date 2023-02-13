@@ -35,18 +35,14 @@ func init() {
 	} else if logLvl == "2" {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.SetLevel(log.TraceLevel)
+		log.SetLevel(log.PanicLevel) // silent mode (0)
 	}
 }
 
 func DebugMsg(msg ...string) {
-	if log.GetLevel() == log.DebugLevel {
-		log.Debug(msg)
-	}
+	log.Debug(msg)
 }
 
 func InfoMsg(msg ...string) {
-	if log.GetLevel() == log.InfoLevel {
-		log.Info(msg)
-	}
+	log.Info(msg)
 }
